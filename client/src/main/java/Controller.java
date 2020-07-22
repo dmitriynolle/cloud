@@ -4,10 +4,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,9 +21,39 @@ public class Controller implements Initializable {
     public static Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
+    private String clientPath = "./client/src/main/resources/";
+    private byte [] buffer = new byte[1024];
+    private File dir = new File(clientPath);
+
+
 
     public void sendCommand(ActionEvent actionEvent) {
-        System.out.println("SEND!");
+        String[] commandLine = text.getText().split(" ");
+        try {
+            os.writeUTF(commandLine[0]);
+            os.writeUTF(commandLine[1]);
+            if (is.readBoolean()){
+                String fileName = is.readUTF();
+                System.out.println("fileName: " + fileName);
+                long fileLength = is.readLong();
+                System.out.println("fileLength: " + fileLength);
+                File file = new File(clientPath + "/" + fileName);
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                try(FileOutputStream fos = new FileOutputStream(file)) {
+                    for (long i = 0; i < (fileLength / 1024 == 0 ? 1 : fileLength / 1024); i++) {
+                        int bytesRead = is.read(buffer);
+                        fos.write(buffer, 0, bytesRead);
+                    }
+                }
+                os.writeUTF("OK");
+                os.flush();
+                loadFileList(dir);
+            } else System.out.println("No file !!!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -38,15 +65,11 @@ public class Controller implements Initializable {
             os = new DataOutputStream(socket.getOutputStream());
             Thread.sleep(1000);
             clientFileList = new ArrayList<>();
-            String clientPath = "./client/src/main/resources/";
-            File dir = new File(clientPath);
+
             if (!dir.exists()) {
                 throw new RuntimeException("directory resource not exists on client");
             }
-            for (File file : Objects.requireNonNull(dir.listFiles())) {
-                clientFileList.add(file);
-                listView.getItems().add(file.getName() + " : " + file.length());
-            }
+            loadFileList(dir);
             listView.setOnMouseClicked(a -> {
                 if (a.getClickCount() == 2) {
                     String[] fileName = listView.getSelectionModel().getSelectedItem().split(" : ");
@@ -57,7 +80,6 @@ public class Controller implements Initializable {
                             os.writeUTF(fileName[0]);
                             os.writeLong(currentFile.length());
                             FileInputStream fis = new FileInputStream(currentFile);
-                            byte [] buffer = new byte[1024];
                             while (fis.available() > 0) {
                                 int bytesRead = fis.read(buffer);
                                 os.write(buffer, 0, bytesRead);
@@ -73,6 +95,14 @@ public class Controller implements Initializable {
             });
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void loadFileList(File dir) {
+        listView.getItems().clear();
+        for (File file : Objects.requireNonNull(dir.listFiles())) {
+            clientFileList.add(file);
+            listView.getItems().add(file.getName() + " : " + file.length());
         }
     }
 

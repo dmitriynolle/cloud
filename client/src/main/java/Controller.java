@@ -78,7 +78,7 @@ public class Controller implements Initializable {
                         try {
                             os.writeUTF("./upload");
                             os.writeUTF(fileName[0]);
-                            os.writeLong(currentFile.length());
+                            os.writeUTF(String.valueOf(currentFile.length()));
                             FileInputStream fis = new FileInputStream(currentFile);
                             while (fis.available() > 0) {
                                 int bytesRead = fis.read(buffer);

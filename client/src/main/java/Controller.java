@@ -76,17 +76,31 @@ public class Controller implements Initializable {
                     File currentFile = findFileByName(fileName[0]);
                     if (currentFile != null) {
                         try {
-                            os.writeUTF("./upload");
-                            os.writeUTF(fileName[0]);
-                            os.writeUTF(String.valueOf(currentFile.length()));
+//                            Для IO
+//                            os.writeUTF("./upload");
+//                            os.writeUTF(fileName[0]);
+//                            os.writeLong(currentFile.length());
+
+//                            Для NIO
+                            os.write("./upload".getBytes());
+                            os.write((fileName[0] + "|").getBytes());
                             FileInputStream fis = new FileInputStream(currentFile);
                             while (fis.available() > 0) {
                                 int bytesRead = fis.read(buffer);
                                 os.write(buffer, 0, bytesRead);
                             }
                             os.flush();
-                            String response = is.readUTF();
-                            System.out.println(response);
+//                            Для IO
+//                            byte response = is.readByte();
+//                            System.out.println((char) response);
+
+//                            Для NIO
+                            int readBuffer = 0;
+                            while (readBuffer != 124){
+                                System.out.print((char) readBuffer);
+                                readBuffer = is.read();
+                            }
+                            System.out.println();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

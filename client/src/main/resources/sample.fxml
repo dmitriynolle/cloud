@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
-   <AnchorPane prefHeight="365.0" prefWidth="443.0">
-      <Button fx:id="send" layoutX="377.0" layoutY="326.0" mnemonicParsing="false" onAction="#sendCommand" text="Send" />
-      <ListView fx:id="listView" layoutX="14.0" layoutY="14.0" prefHeight="298.0" prefWidth="414.0" />
-      <TextField fx:id="text" layoutX="14.0" layoutY="326.0" prefHeight="25.0" prefWidth="351.0" />
+<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
+   <AnchorPane prefHeight="600.0" prefWidth="800.0">
+      <Button fx:id="send" layoutX="735.0" layoutY="560.0" mnemonicParsing="false" onAction="#sendCommand" text="Send" />
+      <ListView fx:id="listViewServer" layoutX="14.0" layoutY="50.0" prefHeight="500.0" prefWidth="380.0" />
+      <TextField fx:id="text" layoutX="14.0" layoutY="560.0" prefHeight="25.0" prefWidth="351.0" />
+      <ListView fx:id="listViewClient" layoutX="406.0" layoutY="50.0" prefHeight="500.0" prefWidth="380.0" />
+      <Label layoutX="14.0" layoutY="34.0" text="Server" />
+      <Label layoutX="406.0" layoutY="34.0" text="Client" />
    </AnchorPane>
    <columnConstraints>
       <ColumnConstraints />

@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 
 public class Server {
 
-    public final static String serverPath = "./server/src/main/resources";
+//    public final static String serverPath = "./server/src/main/resources";
 
     public static void main(String[] args) {
         try(ServerSocket server = new ServerSocket(8189)) {

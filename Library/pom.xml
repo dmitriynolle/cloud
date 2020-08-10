@@ -9,15 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>server</artifactId>
-    <dependencies>
-        <dependency>
-            <groupId>com.geekbrains</groupId>
-            <artifactId>Library</artifactId>
-            <version>1</version>
-            <scope>compile</scope>
-        </dependency>
-    </dependencies>
+    <artifactId>Library</artifactId>
 
 
 </project>

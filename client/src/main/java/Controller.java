@@ -1,8 +1,10 @@
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
+import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 
 import java.io.*;
 import java.net.Socket;
@@ -14,97 +16,40 @@ import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
 
-    public Button send;
-    public ListView<String> listView;
+    public Button delete;
+    public ListView<String> listViewClient;
     public TextField text;
-    private List<File> clientFileList;
+    public ListView<String> listViewServer;
+    public Label message;
+    public Button singIn;
+    public Button cancel;
+    public Button checkIn;
+    public AnchorPane passwordPane;
+    public AnchorPane mainPane;
+    public TextField loginText;
+    public PasswordField passwordText;
+    public Label errorText;
+
+    private List<File> clientFileList = new ArrayList<>();
     public static Socket socket;
-    private DataInputStream is;
-    private DataOutputStream os;
+    private ObjectDecoderInputStream is;
+    private ObjectEncoderOutputStream os;
     private String clientPath = "./client/src/main/resources/";
-    private byte [] buffer = new byte[1024];
     private File dir = new File(clientPath);
-
-
-
-    public void sendCommand(ActionEvent actionEvent) {
-        String[] commandLine = text.getText().split(" ");
-        try {
-            os.writeUTF(commandLine[0]);
-            os.writeUTF(commandLine[1]);
-            if (is.readBoolean()){
-                String fileName = is.readUTF();
-                System.out.println("fileName: " + fileName);
-                long fileLength = is.readLong();
-                System.out.println("fileLength: " + fileLength);
-                File file = new File(clientPath + "/" + fileName);
-                if (!file.exists()) {
-                    file.createNewFile();
-                }
-                try(FileOutputStream fos = new FileOutputStream(file)) {
-                    for (long i = 0; i < (fileLength / 1024 == 0 ? 1 : fileLength / 1024); i++) {
-                        int bytesRead = is.read(buffer);
-                        fos.write(buffer, 0, bytesRead);
-                    }
-                }
-                os.writeUTF("OK");
-                os.flush();
-                loadFileList(dir);
-            } else System.out.println("No file !!!");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // TODO: 7/21/2020 init connect to server
-        try{
+        try
+        {
             socket = new Socket("localhost", 8189);
-            is = new DataInputStream(socket.getInputStream());
-            os = new DataOutputStream(socket.getOutputStream());
-            Thread.sleep(1000);
-            clientFileList = new ArrayList<>();
-
-            if (!dir.exists()) {
-                throw new RuntimeException("directory resource not exists on client");
-            }
-            loadFileList(dir);
-            listView.setOnMouseClicked(a -> {
+            is = new ObjectDecoderInputStream(socket.getInputStream());
+            os = new ObjectEncoderOutputStream(socket.getOutputStream());
+            clientFileList(dir);
+            serverFileList();
+            listViewClient.setOnMouseClicked(a -> {
                 if (a.getClickCount() == 2) {
-                    String[] fileName = listView.getSelectionModel().getSelectedItem().split(" : ");
-                    File currentFile = findFileByName(fileName[0]);
-                    if (currentFile != null) {
-                        try {
-//                            Для IO
-//                            os.writeUTF("./upload");
-//                            os.writeUTF(fileName[0]);
-//                            os.writeLong(currentFile.length());
-
-//                            Для NIO
-                            os.write("./upload".getBytes());
-                            os.write((fileName[0] + "|").getBytes());
-                            FileInputStream fis = new FileInputStream(currentFile);
-                            while (fis.available() > 0) {
-                                int bytesRead = fis.read(buffer);
-                                os.write(buffer, 0, bytesRead);
-                            }
-                            os.flush();
-//                            Для IO
-//                            byte response = is.readByte();
-//                            System.out.println((char) response);
-
-//                            Для NIO
-                            int readBuffer = 0;
-                            while (readBuffer != 124){
-                                System.out.print((char) readBuffer);
-                                readBuffer = is.read();
-                            }
-                            System.out.println();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    String[] fileName = listViewClient.getSelectionModel().getSelectedItem().split(" : ");
+                    Library.ReadFileClient(os, fileName[0]);
                 }
             });
         } catch (Exception e) {
@@ -112,11 +57,47 @@ public class Controller implements Initializable {
         }
     }
 
-    private void loadFileList(File dir) {
-        listView.getItems().clear();
+    public void singIn(ActionEvent actionEvent) {
+    }
+
+    public void cancel(ActionEvent actionEvent) {
+    }
+
+    public void checkIn(ActionEvent actionEvent) {
+    }
+
+    public void delCommand(ActionEvent actionEvent) {
+        try {
+            byte[] buffer = ("test buffer".getBytes());
+            SendClass message = new SendClass("upload", buffer);
+            os.writeObject(message);
+            Object msg = is.readObject();
+            SendClass sendClass = (SendClass) msg;
+            System.out.println(sendClass.getCommand());
+            for (int i = 0; i < sendClass.getBuffer().length; i++) {
+                System.out.print((char) sendClass.getBuffer()[i]);
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void serverFileList() throws IOException, ClassNotFoundException {
+        listViewServer.getItems().clear();
+        os.writeObject(new SendClass(Library.SERVERFILELIST));
+        Object msg = is.readObject();
+        SendClass sendClass = (SendClass) msg;
+        String[] serverFileList = (new String(sendClass.getBuffer())).split("\\|");
+        for (String s : serverFileList) {
+            listViewServer.getItems().add(s);
+        }
+    }
+
+    private void clientFileList(File dir) {
+        listViewClient.getItems().clear();
         for (File file : Objects.requireNonNull(dir.listFiles())) {
             clientFileList.add(file);
-            listView.getItems().add(file.getName() + " : " + file.length());
+            listViewClient.getItems().add(file.getName() + " : " + file.length());
         }
     }
 

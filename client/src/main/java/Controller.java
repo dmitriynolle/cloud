@@ -35,7 +35,7 @@ public class Controller implements Initializable {
     private ObjectDecoderInputStream is;
     private ObjectEncoderOutputStream os;
     private String clientPath = "./client/src/main/resources/";
-    private File dir = new File(clientPath);
+    private File dirClient = new File(clientPath);
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -44,12 +44,12 @@ public class Controller implements Initializable {
             socket = new Socket("localhost", 8189);
             is = new ObjectDecoderInputStream(socket.getInputStream());
             os = new ObjectEncoderOutputStream(socket.getOutputStream());
-            clientFileList(dir);
+            clientFileList(dirClient);
             serverFileList();
             listViewClient.setOnMouseClicked(a -> {
                 if (a.getClickCount() == 2) {
                     String[] fileName = listViewClient.getSelectionModel().getSelectedItem().split(" : ");
-                    Library.ReadFileClient(os, fileName[0]);
+                    Library.ReadFile(os, fileName[0], clientPath);
                 }
             });
         } catch (Exception e) {

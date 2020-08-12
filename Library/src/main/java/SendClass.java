@@ -4,6 +4,7 @@ public class SendClass implements Serializable {
 
     private String command;
     private String fileName;
+    private String delFile;
     private byte[] buffer;
 
     public SendClass(String command){
@@ -28,6 +29,10 @@ public class SendClass implements Serializable {
         return fileName;
     }
 
+    public String getDelFile() {
+        return delFile;
+    }
+
     public byte[] getBuffer() {
         return buffer;
     }
@@ -38,6 +43,10 @@ public class SendClass implements Serializable {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public void setDelFile(String delFile) {
+        this.delFile = delFile;
     }
 
     public void setBuffer(byte[] buffer) {

@@ -2,9 +2,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.util.CharsetUtil;
-
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class SerialHandler extends ChannelInboundHandlerAdapter {
@@ -38,6 +35,9 @@ public class SerialHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        Library.SelectFunction(msg, ctx);
+        if (((SendClass)msg).getCommand().equals(Library.MESSAGE))
+            ctx.writeAndFlush(msg);
+        else
+            Library.SelectFunction(msg, ctx, 0);
     }
 }

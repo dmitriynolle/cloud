@@ -13,6 +13,10 @@ public class Main extends Application {
         primaryStage.setTitle("My Cloud");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+        primaryStage.setOnCloseRequest(event -> {
+            NettyNetwork.StopTread();
+            Platform.exit();
+        });
     }
 
 

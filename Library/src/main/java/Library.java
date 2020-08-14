@@ -1,7 +1,9 @@
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Objects;
 
 public interface Library {
@@ -14,24 +16,63 @@ public interface Library {
     public static final String SING_IN = "./singin";
     public static final String CHECK_IN = "./checkin";
     public static final String ERROR = "./error";
+    public static final String MESSAGE = "./message";
     String serverPath = "./server/src/main/resources/";
-    File dirServer = new File(serverPath);
+    String clientPath = "./client/src/main/resources/";
+    String[] nickName = new String[5];
 
-    static void SelectFunction(Object msg, ChannelHandlerContext ctx) {
+    static void SelectFunction(Object msg, ChannelHandlerContext ctx, int flag) {
         SendClass sendClass = (SendClass) msg;
+        switch (sendClass.getCommand()){
+            case(SING_IN):
+                nickName[1] = SqlClient.getNickname(sendClass.getFileName(), sendClass.getDelFile());
+                ctx.writeAndFlush(new SendClass(Library.MESSAGE, nickName[1]));
+                nickName[0] = nickName[1] + "/";
+                break;
 
-        if ((sendClass).getCommand().equals(SERVERFILELIST)){
-            ctx.writeAndFlush(ServerFileList(sendClass));
-        }
+            case(CHECK_IN):
+                nickName[1] = SqlClient.regNickname(sendClass.getFileName(), sendClass.getDelFile());
+                if (!nickName[1].equals(Library.ERROR)){
+                    nickName[0] = nickName[1] + "/";
+                    File theDir = new File(serverPath + nickName[0]);
+                    theDir.mkdir();
+                }
+                ctx.writeAndFlush(new SendClass(Library.MESSAGE, nickName[1]));
+                break;
 
-        if ((sendClass).getCommand().equals(FILEUPLOAD)){
-            FileSave(sendClass);
+            case(SERVERFILELIST):
+                ctx.writeAndFlush(ServerFileList(sendClass, serverPath + nickName[0]));
+                break;
+
+            case(FILEUPLOAD):
+                if (flag == 1)
+                    FileSave(sendClass, clientPath);
+
+                else
+                    FileSave(sendClass, serverPath + nickName[0]);
+                ctx.writeAndFlush(new SendClass(Library.MESSAGE, "File '" + sendClass.getFileName() + "' saved"));
+                break;
+
+            case (FILEDOWNLOAD):
+                ReadFile(ctx, sendClass.getFileName(), serverPath + nickName[0]);
+                break;
+
+            case(FILEDELETE):
+                FileDelete(ctx, sendClass.getFileName(), serverPath + nickName[0]);
+                break;
         }
     }
 
-    static void FileSave(SendClass sendClass) {
+    static void FileDelete(ChannelHandlerContext ctx, String fileName, String path) {
+        File file = new File(path + fileName);
+        if(file.delete()){
+            ctx.writeAndFlush(new SendClass(Library.MESSAGE,"File '" + fileName + "' deleted"));
+        }else ctx.writeAndFlush(new SendClass(Library.MESSAGE,"File '" + fileName + "' not found"));
+    }
+
+    static void FileSave(SendClass sendClass, String path) {
         try{
-        File file = new File(serverPath + sendClass.getFileName());
+        File file = new File(path + sendClass.getFileName());
         if (file.exists() && sendClass.getDelFile().equals(Library.FILEDELETE))
             file.delete();
         if (!file.exists())
@@ -43,35 +84,37 @@ public interface Library {
         }
     }
 
-    static Object ServerFileList(SendClass sendClass) {
+    static Object ServerFileList(SendClass sendClass, String path) {
+        File dir = new File(path);
         String buffer = "";
-        for (File file : Objects.requireNonNull(dirServer.listFiles())) {
+        for (File file : Objects.requireNonNull(dir.listFiles())) {
             buffer += file.getName() + " : " + file.length() + Library.DELIMITER;
         }
         sendClass.setBuffer(buffer.getBytes());
         return sendClass;
     }
 
-    static void ReadFile(ObjectEncoderOutputStream os, String fileName, String path) {
+    static void ReadFile(ChannelHandlerContext ctx, String fileName, String path) {
         try {
             File dir = new File(path);
-            SendClass sendClass = new SendClass(Library.FILEUPLOAD, fileName);
+            SendClass sendClass;
             byte[] buffer;
             File file = findFileByName(fileName, dir);
             FileInputStream fis = new FileInputStream(path + fileName);
             long fileSize = file.length();
-            sendClass.setDelFile(Library.FILEDELETE);
+            sendClass = new SendClass(Library.FILEUPLOAD, fileName, Library.FILEDELETE);
             while (fis.available() > 0) {
                 if (fileSize/1024 < 1)
                     buffer = new byte[(int) fileSize];
                 else buffer = new byte[1024];
-                int bytesRead = fis.read(buffer);
+                fis.read(buffer);
                 sendClass.clearBuffer();
                 sendClass.setBuffer(buffer);
-                os.writeObject(sendClass);
-                sendClass.setDelFile("");
+                ctx.write(sendClass);
+                sendClass = new SendClass(Library.FILEUPLOAD, fileName, "");
                 fileSize -= 1024;
             }
+            ctx.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

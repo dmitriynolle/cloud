@@ -21,6 +21,12 @@ public class SendClass implements Serializable {
         this.fileName = fileName;
     }
 
+    public SendClass(String command, String fileName, String delFile){
+        this.command = command;
+        this.fileName = fileName;
+        this.delFile = delFile;
+    }
+
     public String getCommand() {
         return command;
     }

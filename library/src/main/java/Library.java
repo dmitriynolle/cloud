@@ -13,24 +13,25 @@ public interface Library {
     public static final String FILEDOWNLOAD = "./download";
     public static final String FILEDELETE = "./delete";
     public static final String SERVERFILELIST = "./filelist";
-    public static final String SING_IN = "./singin";
-    public static final String CHECK_IN = "./checkin";
+    public static final String SIGN_IN = "./signin";
+    public static final String SIGN_UP = "./signup";
     public static final String ERROR = "./error";
     public static final String MESSAGE = "./message";
     String serverPath = "./server/src/main/resources/";
     String clientPath = "./client/src/main/resources/";
     String[] nickName = new String[5];
 
+//        Разгребает входящий объект
     static void SelectFunction(Object msg, ChannelHandlerContext ctx, int flag) {
         SendClass sendClass = (SendClass) msg;
         switch (sendClass.getCommand()){
-            case(SING_IN):
+            case(SIGN_IN):
                 nickName[1] = SqlClient.getNickname(sendClass.getFileName(), sendClass.getDelFile());
                 ctx.writeAndFlush(new SendClass(Library.MESSAGE, nickName[1]));
                 nickName[0] = nickName[1] + "/";
                 break;
 
-            case(CHECK_IN):
+            case(SIGN_UP):
                 nickName[1] = SqlClient.regNickname(sendClass.getFileName(), sendClass.getDelFile());
                 if (!nickName[1].equals(Library.ERROR)){
                     nickName[0] = nickName[1] + "/";
@@ -63,6 +64,7 @@ public interface Library {
         }
     }
 
+//        Удаление файла
     static void FileDelete(ChannelHandlerContext ctx, String fileName, String path) {
         File file = new File(path + fileName);
         if(file.delete()){
@@ -70,6 +72,7 @@ public interface Library {
         }else ctx.writeAndFlush(new SendClass(Library.MESSAGE,"File '" + fileName + "' not found"));
     }
 
+//        Запись файла
     static void FileSave(SendClass sendClass, String path) {
         try{
         File file = new File(path + sendClass.getFileName());
@@ -84,6 +87,7 @@ public interface Library {
         }
     }
 
+//        Создание серверного списка файлов
     static Object ServerFileList(SendClass sendClass, String path) {
         File dir = new File(path);
         String buffer = "";
@@ -94,6 +98,7 @@ public interface Library {
         return sendClass;
     }
 
+//        Чтение файла
     static void ReadFile(ChannelHandlerContext ctx, String fileName, String path) {
         try {
             File dir = new File(path);
@@ -120,6 +125,7 @@ public interface Library {
         }
     }
 
+//        Проверка наличие файла на диске
     static File findFileByName(String fileName, File dir) {
         for (File file : Objects.requireNonNull(dir.listFiles())) {
             if (file.getName().equals(fileName)){

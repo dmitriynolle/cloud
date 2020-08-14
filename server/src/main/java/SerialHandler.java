@@ -31,6 +31,7 @@ public class SerialHandler extends ChannelInboundHandlerAdapter {
         System.out.println("client: " + name + " leave");
         channels.remove((SocketChannel) ctx.channel());
         cnt--;
+        ctx.writeAndFlush(new SendClass(Library.MESSAGE, "Server close connection"));
     }
 
     @Override

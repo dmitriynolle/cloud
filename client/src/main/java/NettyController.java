@@ -1,15 +1,13 @@
-
 import io.netty.channel.ChannelHandlerContext;
-import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
 public class NettyController implements Initializable {
 
@@ -19,9 +17,9 @@ public class NettyController implements Initializable {
     public TextField text;
     public ListView<String> listViewServer;
     public Label message;
-    public Button singIn;
+    public Button signIn;
     public Button cancel;
-    public Button checkIn;
+    public Button signUp;
     public AnchorPane passwordPane;
     public AnchorPane mainPane;
     public TextField loginText;
@@ -30,10 +28,8 @@ public class NettyController implements Initializable {
     public Label command;
     public Button copy;
 
-    private List<File> clientFileList = new ArrayList<>();
-    private String clientPath = "./client/src/main/resources/";
-    private File dirClient = new File(clientPath);
-    private NettyNetwork network;
+    private final String clientPath = "./client/src/main/resources/";
+    private final File dirClient = new File(clientPath);
     public static ChannelHandlerContext ctx;
 
     public static void setCtx(ChannelHandlerContext ctm) {
@@ -43,9 +39,8 @@ public class NettyController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        network = NettyNetwork.getInstance();
-        try
-        {
+        NettyNetwork network = NettyNetwork.getInstance();
+        try {
             listViewClient.setOnMouseClicked(a -> {
                 String[] fileName = listViewClient.getSelectionModel().getSelectedItem().split(" : ");
                 if (a.getClickCount() == 1) {
@@ -65,7 +60,8 @@ public class NettyController implements Initializable {
         }
     }
 
-    public void copyCommand(ActionEvent actionEvent) {
+    //        Запрос копирование файла
+    public void copyCommand() {
         if (command.getText().equals(Library.FILEUPLOAD))
             Library.ReadFile(ctx, text.getText(), clientPath);
         else if (command.getText().equals(Library.FILEDOWNLOAD))
@@ -77,22 +73,22 @@ public class NettyController implements Initializable {
         serverFileList();
     }
 
-    public void singIn(ActionEvent actionEvent) {
+    //        Вход зарегистрированного пользователя
+    public void signIn() {
         String login = loginText.getText();
         String pas = passwordText.getText();
         if (login.equals("") || pas.equals("")) errorText.setText("Login and password must not be empty");
         else {
-            ctx.writeAndFlush(new SendClass(Library.SING_IN, login, pas));
+            ctx.writeAndFlush(new SendClass(Library.SIGN_IN, login, pas));
             sleep();
-            if (!returnSendClass.getFileName().equals(Library.ERROR)){
+            if (!returnSendClass.getFileName().equals(Library.ERROR)) {
                 passwordPane.setVisible(false);
                 mainPane.setVisible(true);
                 Stage stage = (Stage) mainPane.getScene().getWindow();
                 stage.setTitle("My Cloud | User: " + returnSendClass.getFileName());
                 clientFileList(dirClient);
                 serverFileList();
-            }
-            else {
+            } else {
                 errorText.setText("Incorrect login or password");
                 loginText.clear();
                 passwordText.setText(null);
@@ -100,29 +96,22 @@ public class NettyController implements Initializable {
         }
     }
 
-    public void cancel(ActionEvent actionEvent) {
-        Stage stage = (Stage) mainPane.getScene().getWindow();
-        NettyNetwork.StopTread();
-        stage.close();
-    }
-
-    public void checkIn(ActionEvent actionEvent) {
+    //        Регистрация нового пользователя
+    public void signUp() {
         String login = loginText.getText();
         String pas = passwordText.getText();
         if (login.equals("") || pas.equals("")) errorText.setText("Login and password must not be empty");
         else {
-            ctx.writeAndFlush(new SendClass(Library.CHECK_IN, login, pas));
+            ctx.writeAndFlush(new SendClass(Library.SIGN_UP, login, pas));
             sleep();
-            System.out.println("");
-            if (!returnSendClass.getFileName().equals(Library.ERROR)){
+            if (!returnSendClass.getFileName().equals(Library.ERROR)) {
                 passwordPane.setVisible(false);
                 mainPane.setVisible(true);
                 Stage stage = (Stage) mainPane.getScene().getWindow();
                 stage.setTitle("My Cloud | User: " + returnSendClass.getFileName());
                 clientFileList(dirClient);
                 serverFileList();
-            }
-            else {
+            } else {
                 errorText.setText("User already exists");
                 loginText.clear();
                 passwordText.setText(null);
@@ -130,7 +119,15 @@ public class NettyController implements Initializable {
         }
     }
 
-    public void delCommand(ActionEvent actionEvent) {
+    //        Отмена и закрытие приложения
+    public void cancel() {
+        Stage stage = (Stage) mainPane.getScene().getWindow();
+        NettyNetwork.StopTread();
+        stage.close();
+    }
+
+    //        Запрос удаление файла
+    public void delCommand() {
         if (command.getText().equals(Library.FILEUPLOAD))
             Library.FileDelete(ctx, text.getText(), clientPath);
         else if (command.getText().equals(Library.FILEDOWNLOAD))
@@ -142,6 +139,7 @@ public class NettyController implements Initializable {
         serverFileList();
     }
 
+    //        Запрос списка файлов с сервера
     public void serverFileList() {
         ctx.writeAndFlush(new SendClass(Library.SERVERFILELIST));
         sleep();
@@ -152,15 +150,16 @@ public class NettyController implements Initializable {
         }
     }
 
+    //        Клиентский файл лист
     private void clientFileList(File dir) {
         listViewClient.getItems().clear();
         for (File file : Objects.requireNonNull(dir.listFiles())) {
-            clientFileList.add(file);
             listViewClient.getItems().add(file.getName() + " : " + file.length());
         }
     }
 
-    public static void returnSendObject(Object msg){
+    //        Используется для перехвата объекта от сервера
+    public static void returnSendObject(Object msg) {
         returnSendClass = (SendClass) msg;
     }
 

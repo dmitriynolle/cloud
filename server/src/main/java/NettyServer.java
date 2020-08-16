@@ -35,6 +35,7 @@ public class NettyServer {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            SqlClient.disconnect();
             auth.shutdownGracefully();
             worker.shutdownGracefully();
         }

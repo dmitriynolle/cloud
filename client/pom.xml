@@ -17,6 +17,13 @@
             <version>1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>11</version>
+            <type>pom</type>
+        </dependency>
+
     </dependencies>
 
 

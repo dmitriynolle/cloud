@@ -8,12 +8,10 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-import javafx.scene.control.ListView;
 
 public class NettyNetwork {
 
     private static NettyNetwork instance;
-    private static ListView<String> listView;
     private SocketChannel channel;
     private static Thread thread;
 

@@ -3,6 +3,8 @@ import java.io.Serializable;
 public class SendClass implements Serializable {
 
     private String command;
+    private String user;
+    private String filePath;
     private String fileName;
     private String delFile;
     private byte[] buffer;
@@ -16,15 +18,30 @@ public class SendClass implements Serializable {
         this.buffer = buffer;
     }
 
-    public SendClass(String command, String fileName){
+    public SendClass(String command, String user){
         this.command = command;
-        this.fileName = fileName;
+        this.user = user;
     }
 
-    public SendClass(String command, String fileName, String delFile){
+    public SendClass(String command, String user, String fileName){
         this.command = command;
         this.fileName = fileName;
+        this.user = user;
+    }
+
+    public SendClass(String command, String user, String fileName, String delFile){
+        this.command = command;
+        this.user = user;
+        this.fileName = fileName;
         this.delFile = delFile;
+    }
+
+    public SendClass(String command, String user, String fileName, String delFile, String filePath){
+        this.command = command;
+        this.user = user;
+        this.fileName = fileName;
+        this.delFile = delFile;
+        this.filePath = filePath;
     }
 
     public String getCommand() {
@@ -61,5 +78,19 @@ public class SendClass implements Serializable {
 
     public void clearBuffer(){this.buffer = null;}
 
+    public String getFilePath() {
+        return filePath;
+    }
 
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
 }
